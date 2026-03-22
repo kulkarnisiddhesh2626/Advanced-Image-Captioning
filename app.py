@@ -17,11 +17,17 @@ def load_hf_model():
 
 processor, model = load_hf_model()
 
-# --- 3. Sidebar Configuration ---
+# --- 3. Sidebar Configuration & Explanations ---
 st.sidebar.title("⚙️ AI Settings")
 st.sidebar.write("Tweak the model's generation parameters:")
+
+# Parameter 1: Max Length
 max_length = st.sidebar.slider("Max Caption Length", min_value=10, max_value=100, value=50, step=5)
+st.sidebar.caption("**Max Length:** Controls the absolute limit of words the AI is allowed to generate. A higher number allows for longer, more descriptive sentences.")
+
+# Parameter 2: Creativity (Temperature)
 creativity = st.sidebar.slider("AI Creativity (Temperature)", min_value=0.1, max_value=1.5, value=1.0, step=0.1)
+st.sidebar.caption("**Creativity (Temperature):** A low value (e.g., 0.1) makes the AI strict, factual, and predictable. A high value (e.g., 1.5) allows the AI to take risks, use varied vocabulary, and be more 'creative' with its descriptions.")
 
 st.sidebar.markdown("---")
 st.sidebar.info("Built with ❤️ using Streamlit, Hugging Face, and PyTorch.")
@@ -29,7 +35,8 @@ st.sidebar.info("Built with ❤️ using Streamlit, Hugging Face, and PyTorch.")
 # --- 4. Main UI & Tabs ---
 st.title("🚀 Advanced AI Image Captioning")
 
-tab1, tab2, tab3 = st.tabs(["📸 Generate Captions", "🏗️ Architecture & Design", "💻 Run Locally"])
+# Reduced to two clean, professional tabs
+tab1, tab2 = st.tabs(["📸 Generate Captions", "🏗️ Architecture & Design"])
 
 # ----- TAB 1: THE APP -----
 with tab1:
@@ -62,14 +69,14 @@ with tab1:
         with col2:
             st.subheader("AI Analysis")
             with st.spinner("Decoding image features..."):
-                # Prepare image
                 inputs = processor(image, return_tensors="pt")
-                # Generate text using sidebar parameters
+                
+                # Apply the sidebar settings to the AI's generation function
                 out = model.generate(
                     **inputs, 
                     max_new_tokens=max_length,
                     temperature=creativity,
-                    do_sample=(creativity != 1.0) # Enable sampling if temperature is tweaked
+                    do_sample=(creativity != 1.0) # Required by Hugging Face to use temperature
                 )
                 caption = processor.decode(out[0], skip_special_tokens=True)
                 
@@ -80,32 +87,14 @@ with tab2:
     st.header("🏗️ System Architecture & Design")
     st.write("""
     This application utilizes **Salesforce's BLIP (Bootstrapping Language-Image Pre-training)** architecture. 
-    It is a unified vision-language model that achieves state-of-the-art results on a wide range of tasks.
+    It is a unified vision-language model that achieves state-of-the-art results by merging visual feature extraction with natural language processing.
     """)
+    
+    
     
     st.markdown("""
-    ### 🧠 How the AI works
-    1. **Vision Encoder (ViT):** The image is divided into patches (like a grid) and fed into a Vision Transformer. This extracts visual concepts (shapes, colors, objects). 
-    2. **Text Decoder (BERT-based):** A language model takes those visual concepts and decodes them into a coherent English sentence, word by word, using Cross-Attention mechanisms.
-    3. **Bootstrapping:** The model was trained on billions of noisy web images, filtering out the bad captions and learning from the high-quality ones.
+    ### 🧠 How the AI Decodes an Image
+    1. **Vision Encoder (ViT):** The image is first divided into a grid of distinct patches. These patches are fed into a Vision Transformer (ViT) which learns to recognize spatial relationships, colors, and objects.
+    2. **Cross-Attention Mechanism:** The AI does not just look at the image; it maps the visual features directly to text tokens. It pays "attention" to specific parts of the image when predicting specific words.
+    3. **Text Decoder:** A BERT-based language model takes those visual embeddings and generates a coherent English sentence word-by-word based on the temperature and length constraints set by the user.
     """)
-
-# ----- TAB 3: RUN LOCALLY -----
-with tab3:
-    st.header("💻 How to Run This Project Locally")
-    st.write("Want to run this lightning-fast on your own machine? Follow these steps in your terminal:")
-    
-    st.code("""
-# 1. Clone the repository
-git clone https://github.com/kulkarnisiddhesh2626/Advanced-Image-Captioning.git
-
-# 2. Navigate into the project folder
-cd Advanced-Image-Captioning
-
-# 3. Install the required dependencies
-pip install -r requirements.txt
-
-# 4. Start the Streamlit server
-streamlit run app.py
-    """, language="bash")
-    st.info("The app will automatically open in your web browser at http://localhost:8501")
